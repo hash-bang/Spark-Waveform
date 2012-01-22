@@ -47,8 +47,10 @@ Finally the form is validated and (should everything be ok) the values passed on
 	}
 	?>
 
-Simple CodeIgniter usage
-------------------------
+Use with CodeIgniter
+--------------------
+
+The 'CodeIgniter' folder in this project should be copied to your 'application' folder. Now copy the main Waveform.php file into your application/libraries folder.
 
 The below shows a simple car editing contoller written for [CodeIgniter](http://codeigniter.com/).
 
