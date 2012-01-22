@@ -13,10 +13,6 @@
 * @license http://opensource.org/licenses/gpl-license.php GNU Public License
 */
 
-
-// FIXME: DEBUGGING
-ini_set('display_errors', 1);
-
 // Waveform Constants {{{
 // Type constants:
 define('WAVEFORM_TYPE_STRING', 0); // Default simple text entry
@@ -303,8 +299,10 @@ class Waveform {
 	* @param string|int $value If $attribs is a single string value set that style element to this specified value
 	*/
 	function Style($style, $attribs, $value = null) {
+		if (!isset($this->_style[$style])) // Never seen this style before - define a stub
+			$this->_style[$style] = array();
 		if (is_array($attribs)) { // Multiple set array
-			if (!isset($attribs['TAG']))
+			if (!isset($attribs['TAG']) && isset($this->_style[$style]['TAG'])) // Dont let the new data overwrite the 'TAG' meta property
 				$attribs['TAG'] = $this->_style[$style]['TAG'];
 			$this->_style[$style] = $attribs;
 		} else { // Single set key => val
@@ -460,6 +458,9 @@ class Waveform {
 	function Input($field, $params = array()) {
 		if (!isset($this->_fields[$field]))
 			return 'NOT-SPECIFIED';
+
+		if (isset($this->_style[$this->_fields[$field]->type])) // Style defined for this type - import it
+			$params = array_merge($this->_style[$this->_fields[$field]->type], $params);
 
 		$content = null;
 		switch ($this->_fields[$field]->type) {
