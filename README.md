@@ -159,3 +159,8 @@ Finally the form is validated and (should everything be ok) the values passed on
 	?>
 
 Further examples can be found in [examples](https://github.com/hash-bang/WaveForm/tree/master/docs/examples) directory.
+
+
+TODO
+====
+* Update docs to reflect new sparks installation method
