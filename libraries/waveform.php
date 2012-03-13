@@ -441,8 +441,6 @@ class Waveform {
 		$computed = mktime($mktime['h'],$mktime['i'],$mktime['s'],$mktime['m'],$mktime['d'],$mktime['Y']);
 		if ($computed < mktime(1,1,1,1,1,1980))
 			return false;
-
-		// If you want to do some DEBUGGING comment out the following line so we drop though into the debug area
 		return $computed;
 	}
 
@@ -518,7 +516,7 @@ class Waveform {
 				$params = array_merge(array(
 					'name' => $field,
 					'class' => 'datefield',
-					'type' => 'text',
+					'type' => 'date',
 					'value' => date($this->_fields[$field]->format, $this->_fields[$field]->value),
 				), $params);
 				break;
