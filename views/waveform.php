@@ -9,4 +9,4 @@
 */
 if (isset($header)) // Output header (if any)
 	echo (substr($header, 0, 1) == '<') ? $header : "<p>$header</p>";
-$this->waveform->Form();
+echo $this->waveform->Form();

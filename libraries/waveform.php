@@ -18,13 +18,14 @@
 define('WAVEFORM_TYPE_STRING', 0); // Default simple text entry
 define('WAVEFORM_TYPE_INT', 1); // Number requirement
 define('WAVEFORM_TYPE_FLOAT', 2); // Number requirement with float support
-define('WAVEFORM_TYPE_CHOICE', 3); // Multiple restricted choice
-define('WAVEFORM_TYPE_TEXT', 4); // Large multi-line text entry
-define('WAVEFORM_TYPE_LABEL', 5); // Read-only value (just display it)
-define('WAVEFORM_TYPE_FILE', 6); // File uploads
-define('WAVEFORM_TYPE_PASSWORD', 7); // Password (ask twice)
-define('WAVEFORM_TYPE_EPOC', 8); // Epoc counter type (date stored as an int)
-define('WAVEFORM_TYPE_CHECKBOX', 9); // Yes / no style checkbox
+define('WAVEFORM_TYPE_CHOICE', 3); // Restricted choice (i.e. <select> box)
+define('WAVEFORM_TYPE_MULTIPLE_CHOICE', 4); // Restricted choice (i.e. <select> box)
+define('WAVEFORM_TYPE_TEXT', 5); // Large multi-line text entry
+define('WAVEFORM_TYPE_LABEL', 6); // Read-only value (just display it)
+define('WAVEFORM_TYPE_FILE', 7); // File uploads
+define('WAVEFORM_TYPE_PASSWORD', 8); // Password (ask twice)
+define('WAVEFORM_TYPE_EPOC', 9); // Epoc counter type (date stored as an int)
+define('WAVEFORM_TYPE_CHECKBOX', 10); // Yes / no style checkbox
 // Type constants (meta):
 define('WAVEFORM_TYPE_GROUP', 100); // Meta-field to indicate the start of a group
 // }}} Waveform Constants
@@ -457,8 +458,10 @@ class Waveform {
 		if (!isset($this->_fields[$field]))
 			return 'NOT-SPECIFIED';
 
-		if (isset($this->_style[$this->_fields[$field]->type])) // Style defined for this type - import it
-			$params = array_merge($this->_style[$this->_fields[$field]->type], $params);
+		if (isset($this->_style[$this->_fields[$field]->type])) { // Style defined for this type - import it
+			$params = array_merge($this->_style[$this->_fields[$field]->type], $this->_fields[$field]->_style, $params);
+		} else // No global style - just use defined style and passed styles
+			$params = array_merge($params, $this->_fields[$field]->_style);
 
 		$content = null;
 		switch ($this->_fields[$field]->type) {
@@ -480,6 +483,16 @@ class Waveform {
 				$content = '';
 				foreach ($this->_fields[$field]->choices as $key => $val)
 					$content .= "<option value=\"$key\"" . ($this->_fields[$field]->value == $key ? ' selected="selected">' : '>') . "$val</option>";
+				break;
+			case WAVEFORM_TYPE_MULTIPLE_CHOICE:
+				$element = 'select';
+				$params = array_merge(array(
+					'name' => $field,
+					'multiple' => 'multiple',
+				), $params);
+				$content = '';
+				foreach ($this->_fields[$field]->choices as $key => $val)
+					$content .= "<option value=\"$key\"" . (in_array($key, $this->_fields[$field]->value) ? ' selected="selected">' : '>') . "$val</option>";
 				break;
 			case WAVEFORM_TYPE_TEXT:
 				$element = 'textarea';
@@ -920,26 +933,29 @@ class WaveformField {
 
 	/**
 	* Set a style type for this specific field
+	*
 	* e.g.
-	*  $field->Style('table', 'class', 'border table-big');
-	*  $field->Style('table', array('class' => 'border table-big'));
+	*
+	*  $field->Style('id', 'my_widget');
+	*  $field->Style('class', 'big title');
+	*  $field->Style(array('id' => 'my_widget', 'class' => 'big button'));
 	*
 	* Inteligence applied:
 	* * If unspecified the TAG will be carried from the previous style
 	*
-	* @param string $style The name of the style element to set
 	* @param array|string $attribs Either an array of attributes to set or the name of the single attribute to use with $value
-	* @param string|int $value If $attribs is a single string value set that style element to this specified value
+	* @param mixed $value If $attribs is a single string value set that style element to this specified value
 	*/
-	function Style($style, $attribs, $value = null) {
-		if (is_array($attribs)) { // Multiple set array
-			if (!isset($attribs['TAG']))
-				$attribs['TAG'] = $this->_style[$style]['TAG'];
-			$this->_style[$style] = $attribs;
+	function Style($attribs, $value = null) {
+		if (is_array($attribs) && !$value) { // Set everything as an array
+			if (!isset($attribs['TAG'])) // Copy 'TAG' over if it doesnt already have one
+				$attribs['TAG'] = $this->_style['TAG'];
+			$this->_style = $attribs;
 		} else { // Single set key => val
-			$this->_style[$style][$attribs] = $value;
+			$this->_style[$attribs] = $value;
 		}
 		return $this;
+		
 	}
 
 	/**
@@ -955,11 +971,11 @@ class WaveformField {
 	* This is particularly usefull if you want the value returned rather than the index offset
 	* e.g. array('one', 'two', 'three') becomes array('one' => 'one', 'two' => 'two', 'three' => 'three')
 	*
-	* @param array $choices The choices to restrict to. The key is the value returned.
+	* @param array $choices The choices to restrict to. The key is the value returned (If no items are given only the type of the input is set)
 	* @param string|boolean $key Optional key to extract (used to specify what subkey of an array of assocs should be used as the key
 	* @param string $value Optional value to extract (see $key)
 	*/
-	function Choice($choices, $key = null, $value = null) {
+	function Choice($choices = null, $key = null, $value = null) {
 		$this->type = WAVEFORM_TYPE_CHOICE;
 		if ($key && $value) { // Extract $key => $value sequence
 			$this->choices = array();
@@ -969,6 +985,20 @@ class WaveformField {
 			$this->choices = array_combine($choices, $choices);
 		} else
 			$this->choices = $choices;
+		return $this;
+	}
+
+	/**
+	* Convenience function to set up a multiple_choice box
+	* A multiple choice differs from a regular choice in that the user can select many options rather than one
+	* This function is functionally similar to Choice()
+	* @see Choice()
+	*/
+	function MultipleChoice($choices = null, $key = null, $value = null) {
+		$this->Choice($choices, $key, $value);
+		$this->type = WAVEFORM_TYPE_MULTIPLE_CHOICE;
+		if (!is_array($this->value))
+			$this->value = array($this->value);
 		return $this;
 	}
 
@@ -1049,6 +1079,15 @@ class WaveformField {
 	function Email() {
 		$this->type = WAVEFORM_TYPE_STRING;
 		$this->Validate('re', '/^([.0-9a-z_-]+)@(([0-9a-z-]+\.)+[0-9a-z]{2,4})$/i', 'Invalid email address');
+		return $this;
+	}
+
+	/**
+	* Apply a standard URL filter
+	*/
+	function URL() {
+		$this->type = WAVEFORM_TYPE_STRING;
+		$this->Validate('re', '!^https?://([0-9a-z_-]+)\.([.0-9a-z_-]+)$/i', 'Invalid URL');
 		return $this;
 	}
 
