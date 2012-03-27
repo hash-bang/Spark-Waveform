@@ -148,11 +148,17 @@ class Waveform {
 			'table_row' => array( // A row of label = inputs used in Table
 				'TAG' => 'tr',
 			),
+			'table_row_err' => array( // If there is an issue with this field this style is merged with table_row
+			),
 			'table_label' => array( // The label area within a table_row
 				'TAG' => 'td',
 			),
+			'table_label_err' => array( // If there is an issue with this field this style is merged with table_label
+			),
 			'table_input' => array( // The TD of the input element
 				'TAG' => 'td',
+			),
+			'table_input_err' => array( // If there is an issue with this field this style is merged with table_input
 			),
 			'table_group' => array( // The group meta-field row
 				'TAG' => 'tr',
@@ -618,10 +624,10 @@ class Waveform {
 					$this->_fields[$newkey]->Title('again');
 					array_splice($fields, $fieldno + 1, 0, $newkey);
 				}
-				$row = $this->_Compose('table_label', $this->Label($this->activefield));
-				$row .= $this->_Compose('table_input', $this->Input($this->activefield));
+				$row = $this->_Compose($this->_fields[$this->activefield]->errors ? array('table_label', 'table_label_err') : 'table_label', $this->Label($this->activefield));
+				$row .= $this->_Compose($this->_fields[$this->activefield]->errors ? array('table_input', 'table_input_err') : 'table_input', $this->Input($this->activefield));
 			}
-			$table .= $this->_Compose('table_row', $row);
+			$table .= $this->_Compose($this->_fields[$this->activefield]->errors ? array('table_row', 'table_row_err') : 'table_row', $row);
 			$fieldno++;
 		}
 		return $this->_Compose('table', $table);
@@ -640,16 +646,24 @@ class Waveform {
 
 	/**
 	* Applies a style object to a given stream and returns the output
-	* @param string $style The style to apply which pretains to a _style key
+	* @param string|array $style Either a single style to apply which pretains to a _style key or an array of styles
 	* @param string $content Optional content within the tags
 	*/
 	function _Compose($style, $content = null) {
-		$attribs = isset($this->_style[$style]) ? $this->_style[$style] : array();
-		$locals = array(); // Local variables provided when running on eval'd strings (e.g. LEADIN, LEADOUT)
+		$locals =array(); // Local variables provided when running on eval'd strings (e.g. LEADIN, LEADOUT)
 		$locals['waveform'] =& $this;
-		$locals['field'] =& $this->_fields[$this->activefield];
-		if (isset($this->_fields[$this->activefield]->_style[$style])) // Inherit the style to use
-			$attribs = array_merge($attribs, $this->_fields[$this->activefield]->_style[$style]);
+		if ($this->activefield) { // Drawing a field
+			$locals['field'] =& $this->_fields[$this->activefield];
+			$locals['errs'] = implode(', ', $this->_fields[$this->activefield]->errors); // Local errors as CSV
+		}
+
+		$attribs = array();
+		foreach ((array) $style as $s) {
+			if (isset($this->_style[$s])) // Inherit styles from global
+				$attribs = array_merge($attribs, $this->_style[$s]);
+			if (isset($this->_fields[$this->activefield]->_style[$s])) // Inherit styles from local fields
+				$attribs = array_merge($attribs, $this->_fields[$this->activefield]->_style[$s]);
+		}
 
 		if (isset($attribs['SKIP']) && $attribs['SKIP']) // Dont render this parent - but render the children
 			return $content;
