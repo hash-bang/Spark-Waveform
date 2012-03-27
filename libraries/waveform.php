@@ -114,6 +114,20 @@ class Waveform {
 
 	function SetDefaultStyle() {
 		$this->_style = array(
+			/* Example style
+			'element' => array(
+				'TAG' => 'input', // The HTML tag to use
+				'RENDER' => 1, // Actually output something - 1 is assumed if omitted
+				'SKIP' => 0, // Do not render the outer tags of this element but still render its contents (similar to RENDER but this just skips the rendering of the tag BUT STILL renders the child elements) - 0 is assumed if omitted
+				'LEADIN' => 'string', // Anything to put BEFORE the tag
+				'LEADOUT' => 'string', // Anything to put AFTER the tag
+				'PREFIX' => 'string', // Anything to inside the tag before the tags value
+				'SUFFIX' => 'string', // Anything to inside the tag after the tags value
+
+				'class' => 'whatever', // Anything else is enclosed as a parameter in the tag anyway (this would output <input class="whatever">)
+			),
+			*/
+
 			// FORM Constructor
 			'form' => array(
 				'TAG' => 'form',
@@ -634,11 +648,13 @@ class Waveform {
 		$locals = array(); // Local variables provided when running on eval'd strings (e.g. LEADIN, LEADOUT)
 		$locals['waveform'] =& $this;
 		$locals['field'] =& $this->_fields[$this->activefield];
-		if (isset($this->_fields[$this->activefield]->_style[$style]))
+		if (isset($this->_fields[$this->activefield]->_style[$style])) // Inherit the style to use
 			$attribs = array_merge($attribs, $this->_fields[$this->activefield]->_style[$style]);
 
+		if (isset($attribs['SKIP']) && $attribs['SKIP']) // Dont render this parent - but render the children
+			return $content;
 		$element = isset($attribs['TAG']) ? $attribs['TAG'] : $style;
-		if (!$element)
+		if (!$element || (isset($attribs['RENDER']) && !$attribs['RENDER']))
 			return FALSE;
 		$out = (isset($attribs['LEADIN']) ? $this->_EvalString($attribs['LEADIN'], $locals) : '') . "<$element";
 		foreach ($attribs as $key => $val)
