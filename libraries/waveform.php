@@ -478,10 +478,10 @@ class Waveform {
 		if (!isset($this->_fields[$field]))
 			return 'NOT-SPECIFIED';
 
-		if (isset($this->_style[$this->_fields[$field]->type])) { // Style defined for this type - import it
-			$params = array_merge($this->_style[$this->_fields[$field]->type], $this->_fields[$field]->_style, $params);
-		} else // No global style - just use defined style and passed styles
-			$params = array_merge($params, $this->_fields[$field]->_style);
+		if (isset($this->_style[$this->_fields[$field]->type])) // Global Style defined for this type
+			$params = array_merge($params, $this->_style[$this->_fields[$field]->type]);
+		if (isset($this->_fields[$field]->_style[$this->_fields[$field]->type])) // Local style defined for this type
+			$params = array_merge($params, $this->_fields[$field]->_style[$this->_fields[$field]->type]);
 
 		$content = null;
 		switch ($this->_fields[$field]->type) {
@@ -992,7 +992,7 @@ class WaveformField {
 		} elseif ($element && $attribs && $value) { // First form - Set the style of an element as a simple set
 			$this->_style[$element][$attribs] = $value;
 		} elseif ($element && $attribs) { // Second form - implied input area
-			$this->_style[$this->type][$attribs] = $value;
+			$this->_style[$this->type][$element] = $attribs;
 		}
 		return $this;
 	}
