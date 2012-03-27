@@ -934,28 +934,38 @@ class WaveformField {
 	/**
 	* Set a style type for this specific field
 	*
+	* This style has two forms. The first is where a sub-element is specified
 	* e.g.
+	*     $field->Style('table', 'class', 'border table-big');
+	*     $field->Style('table', array('class' => 'border table-big'));
 	*
-	*  $field->Style('id', 'my_widget');
-	*  $field->Style('class', 'big title');
-	*  $field->Style(array('id' => 'my_widget', 'class' => 'big button'));
+	* And the second is where the first parameter is ASSUMED to refer to the input box the user enters data into
+	* e.g.
+	*     $field->Style('id', 'my_widget');
+	*     $field->Style('class', 'big title');
 	*
-	* Inteligence applied:
+	* Thus these two methods are functionally the same:
+	*     $field->Style(WAVEFORM_TYPE_STRING, 'class', 'border');
+	*     $field->Style('class', 'border');
+	*
+	* Addtional inteligence applied:
 	* * If unspecified the TAG will be carried from the previous style
 	*
 	* @param array|string $attribs Either an array of attributes to set or the name of the single attribute to use with $value
 	* @param mixed $value If $attribs is a single string value set that style element to this specified value
 	*/
-	function Style($attribs, $value = null) {
-		if (is_array($attribs) && !$value) { // Set everything as an array
-			if (!isset($attribs['TAG'])) // Copy 'TAG' over if it doesnt already have one
-				$attribs['TAG'] = $this->_style['TAG'];
-			$this->_style = $attribs;
-		} else { // Single set key => val
-			$this->_style[$attribs] = $value;
+	function Style($element, $attribs, $value = null) {
+
+		if ($element && is_array($attribs)) { // First form - Set the style of an element
+			if (!isset($attribs['TAG']))
+				$attribs['TAG'] = $this->_style[$element]['TAG'];
+			$this->_style[$element] = $attribs;
+		} elseif ($element && $attribs && $value) { // First form - Set the style of an element as a simple set
+			$this->_style[$element][$attribs] = $value;
+		} elseif ($element && $attribs) { // Second form - implied input area
+			$this->_style[$this->type][$attribs] = $value;
 		}
 		return $this;
-		
 	}
 
 	/**
