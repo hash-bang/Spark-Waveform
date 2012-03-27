@@ -900,7 +900,7 @@ class WaveformField {
 		$i = 0;
 		while ($i < count($this->_validators))
 			if ($this->_validators[$i][0] == $name) { // Matches
-				unset($this->_validators[$i]);
+				array_splice($this->_validators, $i, 1);
 				if (++$removed > $limit && $limit > 0)
 					return $removed;
 			} else {
