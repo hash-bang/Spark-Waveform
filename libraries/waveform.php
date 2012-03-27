@@ -971,7 +971,6 @@ class WaveformField {
 	* @param mixed $value If $attribs is a single string value set that style element to this specified value
 	*/
 	function Style($element, $attribs, $value = null) {
-
 		if ($element && is_array($attribs)) { // First form - Set the style of an element
 			if (!isset($attribs['TAG']))
 				$attribs['TAG'] = $this->_style[$element]['TAG'];
@@ -1113,7 +1112,7 @@ class WaveformField {
 	*/
 	function URL() {
 		$this->type = WAVEFORM_TYPE_STRING;
-		$this->Validate('re', '!^https?://([0-9a-z_-]+)\.([.0-9a-z_-]+)$/i', 'Invalid URL');
+		$this->Validate('re', '!^https?://([0-9a-z_-]+)\.([.0-9a-z_-]+)$!i', 'Invalid URL');
 		return $this;
 	}
 
