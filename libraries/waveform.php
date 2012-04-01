@@ -301,7 +301,7 @@ class Waveform {
 			foreach ($field as $key => $val)
 				if (isset($this->_fields[$key]) && ($this->_fields[$key]->value === null || $value) )
 					$this->_fields[$key]->value = $val;
-		} else {
+		} elseif (isset($this->_fields[$field])) {
 			$this->_fields[$field]->value = $value;
 		}
 	}
@@ -1211,7 +1211,7 @@ class WaveformField {
 	* @param string $message Optional error message to return if this test fails
 	*/
 	function CheckRE($regexp, $message = 'Invalid %s') {
-		return (preg_match($regexp, $this->value)) ? $this->Pass() : $this->Fail($message);
+		return ($this->value == '' || preg_match($regexp, $this->value)) ? $this->Pass() : $this->Fail($message);
 	}
 
 	/**
