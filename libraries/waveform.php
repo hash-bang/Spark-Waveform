@@ -712,7 +712,8 @@ class Waveform {
 	* @return string The HTML of a generated element
 	*/
 	function _ComposeElement($element, $attribs, $content = null) {
-		$out = "<$element";
+		$out = (isset($attribs['LEADIN']) ? $attribs['LEADIN'] : '');
+		$out .= "<$element";
 		foreach ($attribs as $key => $val)
 			if (is_array($val)) { // Possibly dealing with a style
 				$out .= " $key=\"";
@@ -720,14 +721,19 @@ class Waveform {
 					$out .= "$csskey: $cssval;";
 				$out = substr($out, 0, -1); // Chomp last useless ';'
 				$out .= '"';
-			} else
+			} elseif (!in_array($key, array('PREFIX', 'SUFFIX', 'LEADIN', 'LEADOUT'))) // Ignore meta directives
 				$out .= " $key=\"$val\"";
 		if (is_string($content) || in_array($element, array('textarea'))) { // Either has content or one of those elements that should never be closed early
-			$out .= ">$content</$element>";
+			$out .= '>'
+			. (isset($attribs['PREFIX']) ? $attribs['PREFIX'] : '')
+			. $content
+			. (isset($attribs['SUFFIX']) ? $attribs['SUFFIX'] : '')
+			. "</$element>";
 		} elseif ($content === null) {
 			$out .= "/>";
 		} elseif ($content === TRUE)
 			$out .= ">";
+		$out .= (isset($attribs['LEADOUT']) ? $attribs['LEADOUT'] : '');
 		return $out;
 	}
 	// }}} HTML convenience functionality
