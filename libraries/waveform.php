@@ -1,4 +1,4 @@
-<?
+<?php
 /**
 * Waveform form generator and validator class
 * This file should stand alone unless there is any specific requirement for individual helper libraries such as jQuery.
@@ -242,6 +242,37 @@ class Waveform {
 	function Fail($field, $text) {
 		$this->_fields[$field]->Fail($text);
 		$this->_failed[] = $field;
+	}
+
+	/**
+	* Return a field record
+	* @param string $field The field to return
+	* @return WaveFormField The field object found or FALSE if not found
+	*/
+	function Field($field) {
+		return isset($this->_fields[$field]) ? $this->_fields[$field] : FALSE;
+	}
+
+	/**
+	* Apply a method to a number of fields
+	* This functionality is intended as a really lazy way to mass set a number of fields in a one-liner call
+	* This function only works on existing fields that have already been delcared
+	* e.g.
+	* 	$this->waveform->Apply('NotRequired', array('street', 'suburb', 'city', 'state', 'country',  'postcode'));
+	*
+	* @param string|array $methods Either a single method to apply or an array of methods
+	* @param string|array $fields Either a single field or multiple fields to apply the method to
+	* @param bool $silent If boolean TRUE no errors will be reported if the field does not exist. If false trigger_error will be called
+	*/
+	function Apply($methods, $fields, $silent = FALSE) {
+		foreach ((array) $methods as $method) {
+			foreach ((array) $fields as $field) {
+				if (isset($this->_fields[$field])) {
+					$this->_fields[$field]->$method();
+				} elseif (!$silent)
+					trigger_error("Attempted to call method '$method' via Apply() on non-existant field '$field'", E_USER_WARNING);
+			}
+		}
 	}
 
 	// }}} Validator functionality
@@ -550,7 +581,7 @@ class Waveform {
 					'name' => $field,
 					'class' => 'datefield',
 					'type' => 'date',
-					'value' => date($this->_fields[$field]->format, $this->_fields[$field]->value),
+					'value' => $this->_fields[$field]->value === null ? '' : date($this->_fields[$field]->format, $this->_fields[$field]->value),
 				), $params);
 				break;
 			case WAVEFORM_TYPE_CHECKBOX:
@@ -1079,7 +1110,9 @@ class WaveformField {
 	function Date($format = 'd/m/Y') {
 		$this->format = $format;
 		$this->type = WAVEFORM_TYPE_EPOC;
-		if (!preg_match('/^[0-9]+$/', $this->value)) // Convert string to int if we already are using a value (such as those supplied in POST)
+		if ($this->value === null || $this->value === '') { // Value is null
+			$this->value = null;
+		} elseif (!preg_match('/^[0-9]+$/', $this->value)) // Convert string to int if we already are using a value (such as those supplied in POST)
 			$this->value = $this->parent->UnDate($format, $this->value);
 		return $this;
 	}
