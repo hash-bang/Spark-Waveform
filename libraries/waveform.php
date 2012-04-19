@@ -209,14 +209,16 @@ class Waveform {
 	/**
 	* Tests the validation of all or a selected number of fields
 	* @param string|array $fields
+	* @return bool Whether all validations passed
 	*/
 	function OK($fields = null) {
-		if (!$fields) { // Assume all fields
+		if (!$fields) { // Assume all fields if no specifics are given
 			if ($this->fresh) // Not a fresh form - fail since we are just presenting the inital form to the user
 				return FALSE;
 			$fields = array_keys($this->_fields);
 		} elseif ($fields && is_string($fields)) // Is a string - possibly a CSV
 			$fields = preg_split('/\s*,\s*/', $fields);
+
 		$this->_failed = $this->_ok = array();
 		foreach ($fields as $field) {
 			if (! $this->_fields[$field]->Check()) {
@@ -957,6 +959,8 @@ class WaveformField {
 			if (method_exists($this, $func) && ! call_user_func_array(array($this, $func), $validator))
 				$pass = FALSE;
 		}
+		if ($this->errors) // Fail if there are already errors in this fields buffer - these are probably manually specified
+			return FALSE;
 		return $pass;
 	}
 
