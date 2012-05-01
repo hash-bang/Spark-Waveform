@@ -1039,6 +1039,30 @@ class WaveformField {
 	}
 
 	/**
+	* Shorthand function to define a string
+	*/
+	function String() {
+		$this->type = WAVEFORM_TYPE_STRING;
+		return $this;
+	}
+
+	/**
+	* Shorthand function to define an integer
+	*/
+	function Int() {
+		$this->type = WAVEFORM_TYPE_INT;
+		return $this;
+	}
+
+	/**
+	* Shorthand function to define a float
+	*/
+	function Float() {
+		$this->type = WAVEFORM_TYPE_FLOAT;
+		return $this;
+	}
+
+	/**
 	* Convenience function for quickly setting up a number of restricted choices.
 	* In HTML this is usually represented by a '<select>' box
 	*
@@ -1091,23 +1115,85 @@ class WaveformField {
 	}
 
 	/**
-	* Shorthand function to define an integer
+	* Shorthand function to define a field as a label
 	*/
-	function Int() {
-		$this->type = WAVEFORM_TYPE_INT;
+	function Label() {
+		$this->type = WAVEFORM_TYPE_TEXT;
 		return $this;
 	}
 
 	/**
-	* Shorthand function to define a float
+	* Alias for Label()
+	* @see Label()
 	*/
-	function Float() {
-		$this->type = WAVEFORM_TYPE_FLOAT;
+	function ReadOnly() {
+		return $this->Label();
+	}
+
+	// FILE type {{{
+	function ApplyFile() {
+		$this->type = WAVEFORM_TYPE_FILE;
 		return $this;
 	}
 
 	/**
-	* Shorthand funciton to define a field as a date / epoc type
+	* Accept a file upload and, if successful, store it as the supplied path
+	* * If $path is a directory - The file is saved there and a random file name generated
+	* * If $path is a file path + name - The file is saved as that path + name
+	* * If $path is omitted - Nothing is done with the incomming file and its name remains as PHP's temporary path storage name
+	* The actual name of the file can be accessed using the usual $_POST['file'] variable
+	* @param string $path Optional name of a file or directory to save the file in
+	*/
+	function AcceptFile($path = null) {
+		if (!isset($_FILES[$this->field]) || !$_FILES[$this->field]['tmp_name'])
+			return $this->Fail('%s requires a file upload');
+		if (is_array($_FILES[$this->field]['tmp_name'])) { // Uploading multiple files
+			$_POST[$this->field] = array();
+			foreach ($_FILES[$this->field]['tmp_name'] as $tmp) {
+				if (! $dst = $this->_AcceptFile($tmp, $path))
+					return $this->Fail('Cannot save %s uploaded file');
+				$_POST[$this->field][] = $dst;
+			}
+		} else {
+			if ($dst = $this->_AcceptFile($_FILES[$this->field]['tmp_name'], $path)) {
+				$_POST[$this->field] = $dst;
+				return $this->Pass();
+			} else
+				return $this->Fail('Cannot save %s uploaded file');
+		}
+	}
+
+	/**
+	* Actual worker for CheckFile()
+	* @see CheckFile()
+	* @param string $tmppath Where PHP is storing the temporary file
+	* @param string $path Optional directory or file where the file should be saved
+	* @return string The actual path where the file ended up
+	*/
+	function _AcceptFile($tmppath, $path) {
+		if (!$path)
+			return $tmppath;
+		if (is_dir($path)) {
+			$path = $path . '/' . basename(tempnam($path, ''));
+		} elseif (!is_dir(dirname($path)))
+			trigger_error("Cannot save file (specified under field '{$this->field}' to '$path'");
+		return move_uploaded_file($tmppath, $path) ? $path : FALSE;
+	}
+	// }}} FILE type
+
+	/**
+	* Shorthand function to define a field as a password
+	* @param bool $twice Ask for this field twice (i.e. if accepting the password from the user for the first time)
+	*/
+	function Password($twice = TRUE) {
+		$this->type = WAVEFORM_TYPE_PASSWORD;
+		if (!$twice)
+			$this->_dontclone = TRUE;
+		return $this;
+	}
+
+	/**
+	* Shorthand function to define a field as a date / epoc type
 	* @param string $format The format of the date as supported by PHP's DATE function
 	* @see Date()
 	*/
@@ -1122,24 +1208,11 @@ class WaveformField {
 	}
 
 	/**
-	* Shorthand funciton to define a field as a password
-	* @param bool $twice Ask for this field twice (i.e. if accepting the password from the user for the first time)
+	* Shorthand function to define a field as a date / epoc type
+	* @see Date()
 	*/
-	function Password($twice = TRUE) {
-		$this->type = WAVEFORM_TYPE_PASSWORD;
-		if (!$twice)
-			$this->_dontclone = TRUE;
-		return $this;
-	}
-
-	/**
-	* Setup a Choice system with 'Yes/No' choices
-	*/
-	function YesNo() {
-		return $this->Choice(array(
-			'1' => 'Yes',
-			'0' => 'No',
-		));
+	function Epoc() {
+		return $this->Date();
 	}
 
 	/**
@@ -1153,6 +1226,16 @@ class WaveformField {
 		$this->Style('table_label', 'SUFFIX', '</label>');
 		$this->Style('table_input', 'TAG', '');
 		$this->NotRequired();
+	}
+
+	/**
+	* Setup a Choice system with 'Yes/No' choices
+	*/
+	function YesNo() {
+		return $this->Choice(array(
+			'1' => 'Yes',
+			'0' => 'No',
+		));
 	}
 
 	/**
@@ -1280,56 +1363,6 @@ class WaveformField {
 			return $this->Fail($message);
 	}
 
-	// FILE type {{{
-	function ApplyFile() {
-		$this->type = WAVEFORM_TYPE_FILE;
-		return $this;
-	}
-
-	/**
-	* Accept a file upload and, if successful, store it as the supplied path
-	* * If $path is a directory - The file is saved there and a random file name generated
-	* * If $path is a file path + name - The file is saved as that path + name
-	* * If $path is omitted - Nothing is done with the incomming file and its name remains as PHP's temporary path storage name
-	* The actual name of the file can be accessed using the usual $_POST['file'] variable
-	* @param string $path Optional name of a file or directory to save the file in
-	*/
-	function AcceptFile($path = null) {
-		if (!isset($_FILES[$this->field]) || !$_FILES[$this->field]['tmp_name'])
-			return $this->Fail('%s requires a file upload');
-		if (is_array($_FILES[$this->field]['tmp_name'])) { // Uploading multiple files
-			$_POST[$this->field] = array();
-			foreach ($_FILES[$this->field]['tmp_name'] as $tmp) {
-				if (! $dst = $this->_AcceptFile($tmp, $path))
-					return $this->Fail('Cannot save %s uploaded file');
-				$_POST[$this->field][] = $dst;
-			}
-		} else {
-			if ($dst = $this->_AcceptFile($_FILES[$this->field]['tmp_name'], $path)) {
-				$_POST[$this->field] = $dst;
-				return $this->Pass();
-			} else
-				return $this->Fail('Cannot save %s uploaded file');
-		}
-	}
-
-	/**
-	* Actual worker for CheckFile()
-	* @see CheckFile()
-	* @param string $tmppath Where PHP is storing the temporary file
-	* @param string $path Optional directory or file where the file should be saved
-	* @return string The actual path where the file ended up
-	*/
-	function _AcceptFile($tmppath, $path) {
-		if (!$path)
-			return $tmppath;
-		if (is_dir($path)) {
-			$path = $path . '/' . basename(tempnam($path, ''));
-		} elseif (!is_dir(dirname($path)))
-			trigger_error("Cannot save file (specified under field '{$this->field}' to '$path'");
-		return move_uploaded_file($tmppath, $path) ? $path : FALSE;
-	}
-	// }}} FILE type
 	// Built-in validation methods }}}
 }
 // }}} WaveformField Class
