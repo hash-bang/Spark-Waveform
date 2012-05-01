@@ -1118,7 +1118,7 @@ class WaveformField {
 	* Shorthand function to define a field as a label
 	*/
 	function Label() {
-		$this->type = WAVEFORM_TYPE_TEXT;
+		$this->type = WAVEFORM_TYPE_LABEL;
 		return $this;
 	}
 
@@ -1265,7 +1265,6 @@ class WaveformField {
 			$this->value = $value;
 		return $this;
 	}
-
 	// }}} Convenience functions
 
 	// Built-in validation methods {{{
