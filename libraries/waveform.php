@@ -1119,6 +1119,7 @@ class WaveformField {
 	*/
 	function Label() {
 		$this->type = WAVEFORM_TYPE_LABEL;
+		$this->RemoveValidator('required');
 		return $this;
 	}
 
