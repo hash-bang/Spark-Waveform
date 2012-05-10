@@ -1027,7 +1027,7 @@ class WaveformField {
 	*/
 	function Style($element, $attribs, $value = null) {
 		if ($element && is_array($attribs)) { // First form - Set the style of an element
-			if (!isset($attribs['TAG']))
+			if (!isset($attribs['TAG']) && isset($this->_style[$element]['TAG']))
 				$attribs['TAG'] = $this->_style[$element]['TAG'];
 			$this->_style[$element] = $attribs;
 		} elseif ($element && $attribs && $value) { // First form - Set the style of an element as a simple set
