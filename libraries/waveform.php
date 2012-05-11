@@ -493,8 +493,6 @@ class Waveform {
 			}
 		}
 		$computed = mktime($mktime['h'],$mktime['i'],$mktime['s'],$mktime['m'],$mktime['d'],$mktime['Y']);
-		if ($computed < mktime(1,1,1,1,1,1980))
-			return false;
 		return $computed;
 	}
 
@@ -1203,7 +1201,7 @@ class WaveformField {
 		$this->type = WAVEFORM_TYPE_EPOC;
 		if ($this->value === null || $this->value === '') { // Value is null
 			$this->value = null;
-		} elseif (!preg_match('/^[0-9]+$/', $this->value)) // Convert string to int if we already are using a value (such as those supplied in POST)
+		} elseif (!preg_match('/^\-?[0-9]+$/', $this->value)) // Convert string to int if we already are using a value (such as those supplied in POST)
 			$this->value = $this->parent->UnDate($format, $this->value);
 		return $this;
 	}
