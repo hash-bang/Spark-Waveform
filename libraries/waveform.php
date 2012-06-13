@@ -121,8 +121,9 @@ class Waveform {
 				'SKIP' => 0, // Do not render the outer tags of this element but still render its contents (similar to RENDER but this just skips the rendering of the tag BUT STILL renders the child elements) - 0 is assumed if omitted
 				'LEADIN' => 'string', // Anything to put BEFORE the tag
 				'LEADOUT' => 'string', // Anything to put AFTER the tag
-				'PREFIX' => 'string', // Anything to inside the tag before the tags value
-				'SUFFIX' => 'string', // Anything to inside the tag after the tags value
+				'PREFIX' => 'string', // Content inside the tag before the tags value
+				'SUFFIX' => 'string', // Content to inside the tag after the tags value
+				'CONTENT' => 'string', // Content to display when nothing else is present
 
 				'class' => 'whatever', // Anything else is enclosed as a parameter in the tag anyway (this would output <input class="whatever">)
 			),
@@ -711,10 +712,10 @@ class Waveform {
 				$out .= '"';
 			} elseif (!preg_match('/^[A-Z]+/', $key)) // Not a meta string like LEADOUT, LEADIN
 				$out .= " $key=\"$val\"";
-		if (is_string($content) || in_array($element, array('textarea'))) { // Either has content or one of those elements that should never be closed early
+		if (is_string($content) || isset($attribs['CONTENT']) ||  in_array($element, array('textarea'))) { // Either has content or one of those elements that should never be closed early
 			$out .= ">"
 				. (isset($attribs['PREFIX']) ? $this->_EvalString($attribs['PREFIX'], $locals) : '')
-				. $content
+				. (isset($attribs['CONTENT']) ? $attribs['CONTENT'] : $content)
 				. (isset($attribs['SUFFIX']) ? $this->_EvalString($attribs['SUFFIX'], $locals) : '')
 				. "</$element>";
 		} else
