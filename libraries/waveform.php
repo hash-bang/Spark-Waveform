@@ -1156,6 +1156,7 @@ class WaveformField {
 			}
 		} else {
 			if ($dst = $this->_AcceptFile($_FILES[$this->field]['tmp_name'], $path)) {
+				$this->value = $dst;
 				$_POST[$this->field] = $dst;
 				return $this->Pass();
 			} else
