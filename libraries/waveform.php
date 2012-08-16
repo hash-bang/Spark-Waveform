@@ -522,7 +522,7 @@ class Waveform {
 				$element = 'input';
 				$params = array_merge(array(
 					'name' => $field,
-					'type' => 'text',
+					'type' => 'number',
 					'size' => 5,
 					'value' => $this->_fields[$field]->value,
 				), $params);
