@@ -106,6 +106,7 @@ class Waveform {
 	function __construct() {
 		$this->_attributes = array();
 		$this->_fields = array();
+		$this->_failed = array();
 		$this->SetDefaultStyle();
 		$this->fresh = TRUE;
 		if (file_exists($f = 'system/application/libraries/Waveform.Style.php')) // Load style file if it exists (CI version)
