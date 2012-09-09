@@ -1,27 +1,22 @@
 WaveForm - CodeIgniter / PHP Input validator
 ============================================
-
 WaveForm is a form validation class for CodeIgniter and PHP.
 It can provide for form (or table or just field) HTML generation as well as validation rules.
 
-White CodeIgniter is primerily CodeIgniter based it can be used as a standalone.
-See 'Using WaveForm in PHP' for details.
 
 Installation
 ============
 
 Installing into CodeIgniter
 ---------------------------
+Download this GIT repository and copy into your application directory.
 
-Download this repo and copy into your application directory.
-
-Alternatively, install with Sparks.
+Alternatively, install with [Sparks](http://getsparks.org/).
 
 
 Using WaveForm in PHP
 ---------------------
-
-White CodeIgniter is primerily CodeIgniter based it can be used as a standalone.
+White Waveform is primarily CodeIgniter + Sparks based it can also be used as a stand-alone.
 
 Grab the main waveform.php file from the libraries directory and simply dump it wherever it is needed.
 
@@ -31,46 +26,48 @@ See the examples below for some tips on how to use it.
 Examples
 ========
 
-Use with CodeIgniter
---------------------
+Simple signup page
+------------------
 
-The 'CodeIgniter' folder in this project should be copied to your 'application' folder. Now copy the main Waveform.php file into your application/libraries folder.
-
-The below shows a simple user sign up page contoller written for [CodeIgniter](http://codeigniter.com/).
+The below shows a simple user sign up page controller written for [CodeIgniter](http://codeigniter.com/) using [Sparks](http://getsparks.org/).
 
 	<?php
 	class User as CI_Controller {
 		function signup() {
+			$this->load->sparks('waveform/1.0.0'); // Load the Waveform Spark
+
 			// Define the Waveform fields
-			require('../waveform.php');
-			$Waveform = new Waveform();
-			$Waveform->Group('Personal Details');
-			$Waveform->Define('name');
-			$Waveform->Define('email')
+			$this->waveform->Group('Personal Details');
+			$this->waveform->Define('name');
+			$this->waveform->Define('email')
 				->Email();
-			$Waveform->Define('age')
+			$this->waveform->Define('age')
 				->Type('int')
 				->Min(18);
-			$Waveform->Group('Optional Info');
-			$Waveform->Define('sex')
+
+			$this->waveform->Group('Optional Info');
+			$this->waveform->Define('sex')
 				->Choice(array('m' => 'Male', 'f' => 'Female'));
-			$Waveform->Define('music_tastes')
+			$this->waveform->Define('music_tastes')
 				->Type('text');
-			$Waveform->Define('avatar')
+			$this->waveform->Define('avatar')
 				->File('temp') // WARNING: This example requires a writable 'temp' sub-directory if testing the 'avatar' upload field.
 				->Max('200kb');
 
-			if ($Waveform->OK()) { // Everything is ok? ?>
+			if ($this->waveform->OK()) { // Everything is ok? ?>
 				// FIXME: Do something now they've signed up
 			} else { // New page OR Something failed
-				<?=$Waveform->Form()?>
+				echo $this->waveform->Form(); // Output the Waveform <form> - usually this would itself be inside a view.
 			}
 		}
 	}
 	?>
 
 
-The below shows a simple car editing contoller
+
+Editing a database record
+-------------------------
+The below shows a simple car editing controller
 
 	<?php
 	/**
@@ -90,8 +87,8 @@ The below shows a simple car editing contoller
 		* @param int $carid The Unique ID of the car to edit
 		*/
 		function Edit($carid = null) {
-			$car = $this->Car->GetById($carid);
-			$this->load->library('Waveform');
+			$car = $this->Car->GetById($carid); // Assumes you have an appropriate setup that provides a library called `Car` with has a method called `GetById()`
+			$this->load->spark('waveform/1.0.0');
 
 			$this->Waveform->Define('make')
 				->Text();
@@ -120,9 +117,9 @@ The below shows a simple car editing contoller
 	?>
 
 
-Simple PHP usage
-----------------
-
+Stand-alone PHP usage
+---------------------
+Waveform can also be used as a stand-alone library without Sparks. To do this simply extract the `waveform.php` file from the `libraries/` directory and use it in your application like you would a normal PHP file.
 The below example loads up WaveForm, defines some fields then sits out a form for the user to enter data into.
 Finally the form is validated and (should everything be ok) the values passed on for further processing.
 
@@ -157,10 +154,3 @@ Finally the form is validated and (should everything be ok) the values passed on
 		echo $Waveform->Form();
 	}
 	?>
-
-Further examples can be found in [examples](https://github.com/hash-bang/WaveForm/tree/master/docs/examples) directory.
-
-
-TODO
-====
-* Update docs to reflect new sparks installation method
