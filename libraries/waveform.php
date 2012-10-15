@@ -509,7 +509,6 @@ class Waveform {
 	function Input($field, $params = array()) {
 		if (!isset($this->_fields[$field]))
 			return 'NOT-SPECIFIED';
-
 		if (isset($this->_style[$this->_fields[$field]->type])) // Global Style defined for this type
 			$params = array_merge($params, $this->_style[$this->_fields[$field]->type]);
 		if (isset($this->_fields[$field]->_style[$this->_fields[$field]->type])) // Local style defined for this type
@@ -597,6 +596,14 @@ class Waveform {
 				), $params);
 				break;
 		}
+
+		if (!isset($params['LEADOUT']))
+			$params['LEADOUT'] = '';
+		foreach ($this->_fields[$field]->subfields as $k => $props)
+			$params['LEADOUT'] .= (isset($props['PREFIX']) ? $props['PREFIX'] : null)
+				. $this->Input($k)
+				.  (isset($props['SUFFIX']) ? $props['SUFFIX'] : null);
+
 		return $this->_ComposeElement($element, $params, $content);
 	}
 
@@ -644,6 +651,10 @@ class Waveform {
 			$this->activefield = $fields[$fieldno];
 			if (!$this->activefield)
 				break;
+			if (!$this->_fields[$this->activefield]->show) {
+				$fieldno++;
+				continue;
+			}
 
 			if ($this->_fields[$this->activefield]->type == WAVEFORM_TYPE_GROUP) { // Special drawing case for groups
 				$row = $this->_Compose('table_group', $this->_Compose('table_group_label', $this->Input($this->activefield)));
@@ -744,6 +755,8 @@ class Waveform {
 	* @return string The HTML of a generated element
 	*/
 	function _ComposeElement($element, $attribs, $content = null) {
+		if (!$element || (isset($attribs['RENDER']) && !$attribs['RENDER']))
+			return FALSE;
 		$out = (isset($attribs['LEADIN']) ? $attribs['LEADIN'] : '');
 		$out .= "<$element";
 		foreach ($attribs as $key => $val)
@@ -822,6 +835,20 @@ class WaveformField {
 	var $errors;
 
 	/**
+	* Include this field in the output HTML
+	* @var bool
+	*/
+	var $show;
+
+	/**
+	* A list of other fields that should be rendered along side this one
+	* This is typically populated by NextTo()
+	* @var array
+	* @see NextTo()
+	*/
+	var $subfields;
+
+	/**
 	* Whether not to clone this class (internal function used in passwords to double up the field)
 	* @var bool
 	*/
@@ -849,6 +876,8 @@ class WaveformField {
 		$this->errors = array();
 		$this->value = null;
 		$this->_style = array();
+		$this->show = 1;
+		$this->subfields = array();
 		$this->_validators = array(
 			array('required'), // Assume 'Required' by default
 		);
@@ -1035,6 +1064,39 @@ class WaveformField {
 			$this->_style[$this->type][$element] = $attribs;
 		}
 		return $this;
+	}
+
+	/**
+	* Place a field next to another
+	* This is usually done when trying to align fields horizontally
+	* In addition to setting the active element as a sub-element this function also calls Show(0) to hide this field on the subsequent render
+	* e.g.
+	* 	$this->waveform->Define('first_name');
+	*	$this->waveform->Define('last_name')->NextTo('first_name');
+	*
+	* @param string $field The parent field this field is to be aligned with
+	* @param string $parameters Any parameters to be included in the alignment (e.g. PREFIX, SUFFIX can be set to control the spacing between this and its parent)
+	*/
+	function NextTo($field, $parameters = array()) {
+		$this->parent->_fields[$field]->subfields[$this->field] = $parameters;
+		return $this->Show(0);
+	}
+
+	/**
+	* Convenience function to show or hide an element from rendering
+	* NOTE: This does not stop Waveform from processing the input. For that you must delete the field from the _fields array
+	* @param bool $shown Whether the element should be rendered
+	*/
+	function Show($shown = 1) {
+		$this->show = $shown;
+		return $this;
+	}
+
+	/**
+	* Convenience function which is the opposit of Show()
+	*/
+	function Hide() {
+		return $this->Show(0);
 	}
 
 	/**
