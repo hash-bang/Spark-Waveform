@@ -669,7 +669,7 @@ class Waveform {
 					$this->_fields[$newkey] = clone $this->_fields[$this->activefield];
 					$this->_fields[$newkey]->_dontclone = TRUE; // Prevent infinite loops
 					$this->_fields[$newkey]->field = $newkey;
-					$this->_fields[$newkey]->Title('again');
+					$this->_fields[$newkey]->Title($this->_fields[$this->activefield]->title . ' again');
 					array_splice($fields, $fieldno + 1, 0, $newkey);
 				}
 				$row = $this->_Compose($this->_fields[$this->activefield]->errors ? array('table_label', 'table_label_err') : 'table_label', $this->Label($this->activefield));
