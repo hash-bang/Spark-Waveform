@@ -106,6 +106,7 @@ class Waveform {
 	function __construct() {
 		$this->_attributes = array();
 		$this->_fields = array();
+		$this->_failed = array();
 		$this->SetDefaultStyle();
 		$this->fresh = TRUE;
 		if (file_exists($f = 'system/application/libraries/Waveform.Style.php')) // Load style file if it exists (CI version)
@@ -416,7 +417,7 @@ class Waveform {
 			'Z' => 0,
 			'c' => 0,
 			'r' => 0,
-			'U' => 0,
+			'U' => '([0-9]+)',
 			'y' => '([0-9]{4}|[0-9]{3}|[0-9]{2})', // Years are oftain mistaken as either Y or y
 			'Y' => '([0-9]{4}|[0-9]{3}|[0-9]{2})', // Years are oftain mistaken as either Y or y
 		);
@@ -491,9 +492,13 @@ class Waveform {
 				case 's':
 					$mktime['s'] = $matches[$i];
 					break;
+				case 'U':
+					$computed = $matches[$i];
+					break;
 			}
 		}
-		$computed = mktime($mktime['h'],$mktime['i'],$mktime['s'],$mktime['m'],$mktime['d'],$mktime['Y']);
+		if (!$computed)
+			$computed = mktime($mktime['h'],$mktime['i'],$mktime['s'],$mktime['m'],$mktime['d'],$mktime['Y']);
 		return $computed;
 	}
 
