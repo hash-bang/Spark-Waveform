@@ -664,14 +664,6 @@ class Waveform {
 			if ($this->_fields[$this->activefield]->type == WAVEFORM_TYPE_GROUP) { // Special drawing case for groups
 				$row = $this->_Compose('table_group', $this->_Compose('table_group_label', $this->Input($this->activefield)));
 			} else { // Regular key => val type fields
-				if ($this->_fields[$this->activefield]->type == WAVEFORM_TYPE_PASSWORD && !$this->_fields[$this->activefield]->_dontclone) { // Double up fields when its a password
-					$newkey = $this->activefield . '_again';
-					$this->_fields[$newkey] = clone $this->_fields[$this->activefield];
-					$this->_fields[$newkey]->_dontclone = TRUE; // Prevent infinite loops
-					$this->_fields[$newkey]->field = $newkey;
-					$this->_fields[$newkey]->Title($this->_fields[$this->activefield]->title . ' again');
-					array_splice($fields, $fieldno + 1, 0, $newkey);
-				}
 				$row = $this->_Compose($this->_fields[$this->activefield]->errors ? array('table_label', 'table_label_err') : 'table_label', $this->Label($this->activefield));
 				$row .= $this->_Compose($this->_fields[$this->activefield]->errors ? array('table_input', 'table_input_err') : 'table_input', $this->Input($this->activefield));
 			}
@@ -1272,8 +1264,10 @@ class WaveformField {
 	*/
 	function Password($twice = TRUE) {
 		$this->type = WAVEFORM_TYPE_PASSWORD;
-		if (!$twice)
-			$this->_dontclone = TRUE;
+		$this->parent->Define($cloned = $this->field . '_again')
+			->Title($this->title . ' again')
+			->Type(WAVEFORM_TYPE_PASSWORD);
+		$this->SameAs($cloned, 'Passwords must match');
 		return $this;
 	}
 
@@ -1447,6 +1441,21 @@ class WaveformField {
 			return $this->Fail($message);
 	}
 
+	/**
+	* Check that the current field is the same as another
+	* e.g.
+	* $Waveform->Define('email')->SameAs('email_again', 'Emails do not match');
+	* @param string $sibling The sibling field that the current field must equal
+	* @param string $message The error message to output on failure
+	*/
+	function CheckSameAs() {
+		$params = func_get_args();
+		$sibling = array_shift($params);
+		$message = count($params) ? array_shift($params) : "{$this->title} must match {$this->parent->_fields[$sibling]->title}";
+		if ($this->parent->_fields[$sibling]->value != $this->value)
+			return $this->Fail($message);
+		return $this->Pass();
+	}
 	// Built-in validation methods }}}
 }
 // }}} WaveformField Class
