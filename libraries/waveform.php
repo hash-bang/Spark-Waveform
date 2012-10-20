@@ -1021,17 +1021,34 @@ class WaveformField {
 	}
 
 	/**
-	* Set the type of the field.
-	* @param string|const $type Either the string descripiton (e.g. 'int') or WAVEFORM_TYPE_* constant
+	* Set this fields type based on a number of common strings
+	* This function is intended to be as tolerant as possible of field types - it will accept a few known synonyms for WAVEFORM_TYPE_* varients
+	* @param string $type The type to set this field as
 	*/
 	function Type($type) {
-		if (is_string($type)) {
-			if ($c = constant('WAVEFORM_TYPE_' . strtoupper($type))) {
-				$this->type = $c;
-			} else
-				trigger_error("Attempting to use ->Type() of '{$this->field}' to unknown type '$type'");
-		} else
+		if (is_int($type)) { // If we are passed an INT blindly trust that its right
 			$this->type = $type;
+			return $this;
+		}
+		foreach(array(
+			'string|normal' => WAVEFORM_TYPE_STRING,
+			'int|integer|number' => WAVEFORM_TYPE_INT,
+			'float|decimal' => WAVEFORM_TYPE_FLOAT,
+			'choice|select' => WAVEFORM_TYPE_CHOICE,
+			'multiple.choice|multiple.select' => WAVEFORM_TYPE_MULTIPLE_CHOICE,
+			'text|textarea|blob' => WAVEFORM_TYPE_TEXT,
+			'label|readonly|read.only' => WAVEFORM_TYPE_LABEL,
+			'file|upload' => WAVEFORM_TYPE_FILE,
+			'password|pass' => WAVEFORM_TYPE_PASSWORD,
+			'epoc|time|date|datetime|date.time' => WAVEFORM_TYPE_EPOC,
+			'checkbox|check|bool|boolean' => WAVEFORM_TYPE_CHECKBOX,
+			'group' => WAVEFORM_TYPE_GROUP,
+		) as $re => $type)
+			if (preg_match("/$re/i", $type)) {
+				$this->type = $type;
+				return $this;
+			}
+		trigger_error("Unknown field type '$type' on field '$field'");	
 		return $this;
 	}
 
