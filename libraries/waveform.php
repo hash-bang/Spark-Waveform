@@ -1266,7 +1266,8 @@ class WaveformField {
 		$this->type = WAVEFORM_TYPE_PASSWORD;
 		$this->parent->Define($cloned = $this->field . '_again')
 			->Title($this->title . ' again')
-			->Type(WAVEFORM_TYPE_PASSWORD);
+			->Type(WAVEFORM_TYPE_PASSWORD)
+			->_style = $this->_style;
 		$this->SameAs($cloned, 'Passwords must match');
 		return $this;
 	}
