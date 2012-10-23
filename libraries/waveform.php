@@ -978,6 +978,7 @@ class WaveformField {
 	*/
 	function Check() {
 		$pass = TRUE;
+		$this->errors = array();
 		foreach ($this->_validators as $offset => $validator) {
 			$this->_activevalidator = $offset;
 			$func = 'Check' . array_shift($validator);
