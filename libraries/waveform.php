@@ -1035,12 +1035,12 @@ class WaveformField {
 			'epoc|time|date|datetime|date.time' => WAVEFORM_TYPE_EPOC,
 			'checkbox|check|bool|boolean' => WAVEFORM_TYPE_CHECKBOX,
 			'group' => WAVEFORM_TYPE_GROUP,
-		) as $re => $type)
-			if (preg_match("/$re/i", $type)) {
-				$this->type = $type;
+		) as $re => $const)
+			if (preg_match("/^$re$/i", $type)) {
+				$this->type = $const;
 				return $this;
 			}
-		trigger_error("Unknown field type '$type' on field '$field'");	
+		trigger_error("Unknown field type '$type' (type: " . gettype($type) . ") on field '{$this->field}'");	
 		return $this;
 	}
 
@@ -1266,7 +1266,7 @@ class WaveformField {
 		$this->type = WAVEFORM_TYPE_PASSWORD;
 		$this->parent->Define($cloned = $this->field . '_again')
 			->Title($this->title . ' again')
-			->Type(WAVEFORM_TYPE_PASSWORD)
+			->Type('password')
 			->_style = $this->_style;
 		$this->SameAs($cloned, 'Passwords must match');
 		return $this;
