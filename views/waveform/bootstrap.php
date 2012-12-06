@@ -2,7 +2,7 @@
 // Generic bootstrap theme for Waveform
 $this->waveform->Style('errs', array('TAG' => 'div', 'class' => 'alert alert-error', 'PREFIX' => '<ul>', 'SUFFIX' => '</ul>'));
 $this->waveform->Style('errs_row', array('TAG' => 'li'));
-$this->waveform->Style('form', array('TAG' => 'form', 'method' => 'POST', 'enctype' => 'multipart/form-data', 'class' => 'form-horizontal', 'PREFIX' => '<fieldset>', 'SUFFIX' => '</fieldset>'));
+$this->waveform->Style('form', array('TAG' => 'form', 'method' => 'POST', 'enctype' => 'multipart/form-data', 'class' => 'form-horizontal', 'PREFIX' => '<fieldset>', 'SUFFIX' => '</fieldset>', 'action' => $_SERVER['REQUEST_URI']));
 $this->waveform->Style('table', array('SKIP' => 1));
 $this->waveform->Style('table_row', array('TAG' => 'div', 'class' => 'control-group'));
 $this->waveform->Style('table_row_err', array('class' => 'control-group error'));
