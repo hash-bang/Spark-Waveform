@@ -523,13 +523,16 @@ class Waveform {
 		switch ($this->_fields[$field]->type) {
 			case WAVEFORM_TYPE_INT:
 			case WAVEFORM_TYPE_FLOAT:
-				$element = 'input';
-				$params = array_merge(array(
+				$defaults = array(
 					'name' => $field,
 					'type' => 'number',
 					'size' => 5,
 					'value' => $this->_fields[$field]->value,
-				), $params);
+				);
+				if ($this->_fields[$field]->type == WAVEFORM_TYPE_FLOAT)
+					$defaults['step'] = 'any'; // Chrome throws a validation error if this isn't set for floats
+				$element = 'input';
+				$params = array_merge($defaults, $params);
 				break;
 			case WAVEFORM_TYPE_CHOICE:
 				$element = 'select';
