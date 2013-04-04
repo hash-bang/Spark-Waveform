@@ -12,6 +12,8 @@ Updates
 * New use of Filters to specify which fields should be rendered when generating a form, table or series of inputs
 * New HTML() alias function to call Label()
 * HTML(), Label() and ReadOnly() can now take a default value as the first parameter to bypass the need to make another call to Default()
+* Creation of GenHash() function to generate short unique hashes
+* Define can now take a null as a name (uses the new GenHash() function to make one)
 
 
 1.1.0

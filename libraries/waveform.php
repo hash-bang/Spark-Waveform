@@ -278,8 +278,11 @@ class Waveform {
 	// Field specification {{{
 	/**
 	* Define a field and its validation parameters
+	* @param string $field The field name to allocate. If omitted a random hash will be generated
 	*/
-	function Define($field) {
+	function Define($field = null) {
+		if (!$field)
+			$field = $this->GenHash();
 		$this->_fields[$field] = new WaveformField($this, $field);
 		$this->Fields[$field] =& $this->_fields[$field]->value;
 		if (isset($_POST[$field])) { // Import value from _POST if it exists
@@ -379,12 +382,33 @@ class Waveform {
 	}
 
 	/**
+	* Generate a unique hash and check for collisions
+	* @param array $existing An array of existing hashes to check when making a new hash. If omitted array_keys($this->_fields) is assumed
+	* @param int $length The length of the hash to generate
+	* @return string A unique short hash
+	*/
+	function GenHash($existing = null, $length = 8) {
+		$junk = array('0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z');
+		while (1) {
+			$hash = '';
+			foreach (range(1, $length) as $offset)
+				$hash .= $junk[rand(0, count($junk))];
+
+			if ($existing === null)
+				$existing = array_keys($this->_fields);
+			if (!$existing || isset($existing[$hash])) // If we dont care about existing hashes OR this hash is unique - exit the loop
+				break;
+		}
+		return $hash;
+	}
+
+	/**
 	* Specifies a grouping of fields
 	* This is useful for particularly long forms
 	* @param string $title The title of the group
 	*/
 	function Group($title) {
-		$this->Define(md5($title))
+		$this->Define($this->GenHash())
 			->Type('group')
 			->Title($title)
 			->NotRequired($title);
