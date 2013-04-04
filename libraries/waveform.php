@@ -210,17 +210,11 @@ class Waveform {
 	// Validator functionality {{{
 	/**
 	* Tests the validation of all or a selected number of fields
-	* @param string|array $fields
+	* @param string|array $fields A field spec according to Filter()
 	* @return bool Whether all validations passed
 	*/
 	function OK($fields = null) {
-		if (!$fields) { // Assume all fields if no specifics are given
-			if ($this->fresh) // Not a fresh form - fail since we are just presenting the inital form to the user
-				return FALSE;
-			$fields = array_keys($this->_fields);
-		} elseif ($fields && is_string($fields)) // Is a string - possibly a CSV
-			$fields = preg_split('/\s*,\s*/', $fields);
-
+		$fields = $this->Filter($this->_fields, $fields);
 		$this->_failed = $this->_ok = array();
 		foreach ($fields as $field) {
 			if (! $this->_fields[$field]->Check()) {
@@ -298,6 +292,92 @@ class Waveform {
 	// }}} Field specification
 
 	// Convenience functions {{{
+	/**
+	* Filter a hash based on an incomming CSV or array
+	* This functionality is used by Form(), Table() or Input() to determine which fields to render
+	*
+	* 1. If $spec is null or empty the entire key set is returned
+	* 2. The $spec can be a simple array of keys to use in which case its just a simple filter list
+	* 3. The $spec can also be a CSV of keys (all whitespace is ignored). The CSV can also contain the following meta filters:
+	*	* 'foo, bar, baz' - Simple key specifiers - output foo, bar and baz keys
+	*	* 'foo - baz' OR 'foo to baz' - Range specifiers - output keys foo to baz
+	*	* '!foo' OR '-foo' - Negation - remove 'foo' from the output list (useful when combined with something above)
+	*	* 'foo' OR '+foo' - Un-negation - Add 'foo' back into the ouput list (useful when combined with something above)
+	*	* '*' - All keys (useful with negation to mean 'except for')
+	*
+	*	NOTES:
+	*	* Any of the above can be used in combination e.g. 'foo, foo - baz, !bar' outputs [foo, baz]
+	*	* If ONLY negation is used '*' is prepended automaticly e.g. '!bar, !baz' is actually '*, !bar, !baz'
+	*
+	* @param array $hash The hash to filter
+	* @param string|array $spec The specification to filter the hash by
+	* @param bool $quiet Raise an error if a field is requested that is not in $hash
+	* @return A list of keys that should be processed (i.e. anything matching via $spec)
+	*/
+	function Filter($hash, $spec = null, $quiet = true) {
+		$filters = null;
+		if (!$spec) {
+			$filters = array('*');
+		} elseif (is_string($spec)) {
+			$filters = preg_split('/\s*,\s*/', $spec);
+		} elseif (is_array($spec)) {
+			$filters = $spec;
+		} else {
+			trigger_error('Unknown data type as $spec passed to $waveform->Filter()');
+			return;
+		}
+
+		$negated = array(); // Keys to REMOVE after we finish cycling over $spec
+		$out = array(); // Candidate keys to add to the output
+		foreach ($filters as $filter) {
+			$filter = trim($filter);
+			if (preg_match('!^\+\s*(.*)$!', $filter, $matches)) { // +foo
+				if (isset($hash[$matches[1]])) {
+					$out[$matches[1]] = 1;
+				} elseif (!$quiet)
+					trigger_error("Unknown field '{$matches[1]}'");
+			} elseif (preg_match('!^[-|\!]\s*(.*)$!', $filter, $matches)) { // -foo || !foo
+				if (isset($hash[$matches[1]])) {
+					$negated[$matches[1]] = 1;
+				} elseif (!$quiet)
+					trigger_error("Unknown field '{$matches[1]}'");
+			} elseif (preg_match('!^(.*?)\s*(\-|to)\s*(.*)$!', $filter, $matches)) { // foo - baz || foo to baz
+				$catch = 0; // 0 - Not catching, 1 - Catching, 2 - Catching + exit next
+				foreach (array_keys($hash) as $key) {
+					if ($key == $matches[1]) {
+						$catch = 1;
+					} elseif ($key == $matches[3]) {
+						$catch = 2;
+					}
+					if ($catch > 0) {
+						$out[$key] = 1;
+						if ($catch == 2)
+							break;
+					}
+				}
+			} elseif ($filter == '*') { // * - add all
+				foreach (array_keys($hash) as $key)
+					$out[$key] = 1;
+			} else { // foo
+				if (isset($hash[$filter])) {
+					$out[$filter] = 1;
+				} elseif (!$quiet)
+					trigger_error("Unknown field '$filter'");
+			}
+		}
+
+		if (!$out && $negated) // All negations - implies add all before negation (i.e. '!foo, !baz' = '*, !foo, !baz')
+			foreach (array_keys($hash) as $key)
+				$out[$key] = 1;
+
+		// Remove all negated
+		foreach (array_keys($negated) as $neg)
+			if (isset($out[$neg]))
+				unset($out[$neg]);
+
+		return array_keys($out);
+	}
+
 	/**
 	* Specifies a grouping of fields
 	* This is useful for particularly long forms
@@ -625,7 +705,8 @@ class Waveform {
 	/**
 	* Output an entire form
 	* @param string $action The action of where to submit the form. If omitted the value in the _style is used
-	* @param string|array $fields Either a single field to ouput, a CSV of fields or an array of fields
+	* @param string|array $fields A field spec according to Filter()
+	* @see Filter()
 	* @return string The HTML of the completed form
 	*/
 	function Form($action = null, $fields = null) {
@@ -640,16 +721,12 @@ class Waveform {
 
 	/**
 	* Output a set of labels and inputs
-	* @param string|array $fields Either a single field to ouput, a CSV of fields or an array of fields
+	* @param string|array $fields A field spec according to Filter()
 	* @param array $style The style to output. See SetDefaultStyle() for information. If null this is copied from _style.
 	* @return The HTML of the form
 	*/
 	function Table($fields = null) {
-		if (!$fields) { // Assume all fields
-			$fields = array_keys($this->_fields);
-		} elseif ($fields && is_string($fields)) // Is a string - possibly a CSV
-			$fields = preg_split('/\s*,\s*/', $fields);
-
+		$fields = $this->Filter($this->_fields, $fields);
 		$table = '';
 		$fieldno = 0;
 		while ($fieldno < count($fields)) {

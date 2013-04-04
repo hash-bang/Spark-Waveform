@@ -4,6 +4,14 @@ WaveForm is a form validation class for CodeIgniter and PHP.
 It can provide for form (or table or just field) HTML generation as well as validation rules.
 
 
+Updates
+=======
+
+1.2.0
+-----
+* New use of Filters to specify which fields should be rendered when generating a form, table or series of inputs
+
+
 Installation
 ============
 
