@@ -133,7 +133,7 @@ class Waveform {
 			// FORM Constructor
 			'form' => array(
 				'TAG' => 'form',
-				'action' => $_SERVER['REQUEST_URI'],
+				'action' => isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '?',
 				'method' => 'POST',
 				'enctype' => 'multipart/form-data',
 			),
