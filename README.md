@@ -15,6 +15,7 @@ Updates
 * Creation of GenHash() function to generate short unique hashes
 * Define can now take a null as a name (uses the new GenHash() function to make one)
 * GetHash() method to return all values as a hash (can take a Filter as parameters)
+* Added Get() method as an alias of Field()
 
 
 1.1.0

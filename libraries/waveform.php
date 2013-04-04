@@ -252,6 +252,16 @@ class Waveform {
 	}
 
 	/**
+	* Alias of Field()
+	* @param string $field The field to return
+	* @see Field()
+	* @return WaveFormField The field object found or FALSE if not found
+	*/
+	function Get($field) {
+		return $this->Field($field);
+	}
+
+	/**
 	* Get a hash of field values (if $fields is omitted all field values are returned)
 	* @param string|array $fields A field spec according to Filter()
 	*/
