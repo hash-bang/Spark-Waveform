@@ -1269,19 +1269,32 @@ class WaveformField {
 
 	/**
 	* Shorthand function to define a field as a label
+	* @param string $html The HTML to set as the field value
 	*/
-	function Label() {
+	function Label($text = null) {
 		$this->type = WAVEFORM_TYPE_LABEL;
 		$this->RemoveValidator('required');
+		if ($text)
+			$this->Default($text);
 		return $this;
 	}
 
 	/**
 	* Alias for Label()
 	* @see Label()
+	* @param string $html The HTML to set as the field value
 	*/
-	function ReadOnly() {
-		return $this->Label();
+	function ReadOnly($text = null) {
+		return $this->Label($text);
+	}
+
+	/**
+	* Shorthand function to trigger Label() and accept HTML as a value
+	* This is really just a dummy field type to inject HTML into the middle of a form
+	* @param string $html The HTML to set as the field value
+	*/
+	function HTML($html = null) {
+		return $this->Label($html);
 	}
 
 	// FILE type {{{
