@@ -252,6 +252,17 @@ class Waveform {
 	}
 
 	/**
+	* Get a hash of field values (if $fields is omitted all field values are returned)
+	* @param string|array $fields A field spec according to Filter()
+	*/
+	function GetHash($fields = null) {
+		$out = array();
+		foreach ($this->Filter($this->_fields, $fields) as $field)
+			$out[$field] = $this->_fields[$field]->value;	
+		return $out;
+	}
+
+	/**
 	* Apply a method to a number of fields
 	* This functionality is intended as a really lazy way to mass set a number of fields in a one-liner call
 	* This function only works on existing fields that have already been delcared

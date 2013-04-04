@@ -14,6 +14,7 @@ Updates
 * HTML(), Label() and ReadOnly() can now take a default value as the first parameter to bypass the need to make another call to Default()
 * Creation of GenHash() function to generate short unique hashes
 * Define can now take a null as a name (uses the new GenHash() function to make one)
+* GetHash() method to return all values as a hash (can take a Filter as parameters)
 
 
 1.1.0
