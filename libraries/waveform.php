@@ -223,7 +223,7 @@ class Waveform {
 				$this->_ok[] = $field;
 			}
 		}
-		if ($this->_failed) {
+		if ($this->_failed || $this->fresh) {
 			return FALSE;
 		} else { // Everything was ok
 			foreach ($fields as $field)
