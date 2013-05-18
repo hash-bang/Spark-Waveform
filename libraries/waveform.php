@@ -419,7 +419,6 @@ class Waveform {
 				$existing = $this->_fields;
 			if (!$existing || !isset($existing[$hash])) // If we dont care about existing hashes OR this hash is unique - exit the loop
 				break;
-			break;
 		}
 		return $hash;
 	}
