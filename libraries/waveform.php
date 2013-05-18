@@ -215,6 +215,8 @@ class Waveform {
 	*/
 	function OK($fields = null) {
 		$fields = $this->Filter($this->_fields, $fields);
+		if ($this->fresh)
+			return FALSE;
 		$this->_failed = $this->_ok = array();
 		foreach ($fields as $field) {
 			if (! $this->_fields[$field]->Check()) {
@@ -223,7 +225,7 @@ class Waveform {
 				$this->_ok[] = $field;
 			}
 		}
-		if ($this->_failed || $this->fresh) {
+		if ($this->_failed) {
 			return FALSE;
 		} else { // Everything was ok
 			foreach ($fields as $field)
