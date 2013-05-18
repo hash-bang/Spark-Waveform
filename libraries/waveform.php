@@ -412,13 +412,14 @@ class Waveform {
 		$junk = array('0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z');
 		while (1) {
 			$hash = '';
-			foreach (range(1, $length) as $offset)
-				$hash .= $junk[rand(0, count($junk))];
+			for ($x = 0; $x < $length; $x++)
+				$hash .= $junk[mt_rand(0, count($junk)-1)];
 
 			if ($existing === null)
-				$existing = array_keys($this->_fields);
-			if (!$existing || isset($existing[$hash])) // If we dont care about existing hashes OR this hash is unique - exit the loop
+				$existing = $this->_fields;
+			if (!$existing || !isset($existing[$hash])) // If we dont care about existing hashes OR this hash is unique - exit the loop
 				break;
+			break;
 		}
 		return $hash;
 	}
