@@ -287,7 +287,7 @@ class Waveform {
 	*/
 	function Apply($methods, $fields, $silent = FALSE) {
 		foreach ((array) $methods as $method) {
-			foreach ((array) $fields as $field) {
+			foreach ($this->Filter($this->_fields, $fields) as $field) {
 				if (isset($this->_fields[$field])) {
 					$this->_fields[$field]->$method();
 				} elseif (!$silent)
