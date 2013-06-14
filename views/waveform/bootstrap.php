@@ -11,5 +11,6 @@ $this->waveform->Style('table_input', array('TAG' => 'div', 'class' => 'controls
 $this->waveform->Style('table_input_err', array('SUFFIX' => '<span class="help-inline">{$errs}</span>'));
 $this->waveform->Style('table_group', array('TAG' => 'legend', 'class' => 'waveform-group'));
 $this->waveform->Style('table_group_label', array('SKIP' => 1));
+$this->waveform->Style('table_span', array('TAG' => 'div', 'class' => 'waveform-span'));
 $this->waveform->Style('form_submit', array('TAG' => 'button', 'type' => 'submit', 'class' => 'pull-right btn btn-primary', 'CONTENT' => '<i class="icon-ok"></i> Save', 'LEADIN' => '<div class="form-actions">', 'LEADOUT' => '</div>'));
 $this->waveform->Style(WAVEFORM_TYPE_LABEL, array('class' => 'waveform-readonly'));

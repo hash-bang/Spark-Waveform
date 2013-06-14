@@ -169,6 +169,10 @@ class Waveform {
 				'TAG' => 'th',
 				'colspan' => 2,
 			),
+			'table_span' => array(
+				'TAG' => 'td',
+				'colspan' => 2,
+			),
 
 			// ERRS Constructor
 			'errs' => array( // Error group
@@ -790,6 +794,8 @@ class Waveform {
 
 			if ($this->_fields[$this->activefield]->type == WAVEFORM_TYPE_GROUP) { // Special drawing case for groups
 				$row = $this->_Compose('table_group', $this->_Compose('table_group_label', $this->Input($this->activefield)));
+			} elseif ($this->_fields[$this->activefield]->span) { // Special drawing case for span items
+				$row = $this->_Compose('table_span', $this->Input($this->activefield));
 			} else { // Regular key => val type fields
 				$row = $this->_Compose($this->_fields[$this->activefield]->errors ? array('table_label', 'table_label_err') : 'table_label', $this->Label($this->activefield));
 				$row .= $this->_Compose($this->_fields[$this->activefield]->errors ? array('table_input', 'table_input_err') : 'table_input', $this->Input($this->activefield));
@@ -973,6 +979,12 @@ class WaveformField {
 	var $subfields;
 
 	/**
+	* Do not render the title element when using the Table() helper
+	* @var bool
+	*/
+	var $span;
+
+	/**
 	* Whether not to clone this class (internal function used in passwords to double up the field)
 	* @var bool
 	*/
@@ -1002,6 +1014,7 @@ class WaveformField {
 		$this->_style = array();
 		$this->show = 1;
 		$this->subfields = array();
+		$this->span = FALSE;
 		$this->_validators = array(
 			array('required'), // Assume 'Required' by default
 		);
@@ -1137,6 +1150,17 @@ class WaveformField {
 	*/
 	function Title($title) {
 		$this->title = $title;
+		return $this;
+	}
+
+	/**
+	* Do not render the title of the field when using the Table() helper
+	* This effectively makes an input element span both the title and input rows (using up two horizontal spaces in most cases)
+	* Its ideally used for textareas or other large input types that need the whole row to display
+	* @param bool $enabled Whether to span the field
+	*/
+	function Span($enabled = TRUE) {
+		$this->span = $enabled;
 		return $this;
 	}
 
