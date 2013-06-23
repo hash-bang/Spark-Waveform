@@ -7,15 +7,20 @@ It can provide for form (or table or just field) HTML generation as well as vali
 Updates
 =======
 
+1.3.0
+-----
+* Added `$field->Span()` function to display a field *without* displaying the label (effectively making the input use up two 'columns' instead of label/value layout). This works really well with text boxes (via `$row->Text()`) or raw HTML output (via `$row->HTML()`)
+* BUGFIX: Chrome no longer gets upset when rendering floating point inputs (via `$row->Float()`)
+
 1.2.0
 -----
 * New use of Filters to specify which fields should be rendered when generating a form, table or series of inputs
-* New HTML() alias function to call Label()
-* HTML(), Label() and ReadOnly() can now take a default value as the first parameter to bypass the need to make another call to Default()
-* Creation of GenHash() function to generate short unique hashes
-* Define can now take a null as a name (uses the new GenHash() function to make one)
-* GetHash() method to return all values as a hash (can take a Filter as parameters)
-* Added Get() method as an alias of Field()
+* New `$row->HTML()` alias function to call `$row->Label()`
+* `$row->HTML()`, `$row->Label()` and `$row->ReadOnly()` can now take a default value as the first parameter to bypass the need to make another call to `$row->Default()`
+* Creation of `GenHash()` function to generate short unique hashes
+* Define can now take a null as a name (uses the new `GenHash()` function to make one)
+* `GetHash()` method to return all values as a hash (can take a Filter as parameters)
+* Added `Get()` method as an alias of `Field()`
 
 
 1.1.0
