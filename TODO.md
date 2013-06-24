@@ -203,6 +203,19 @@ Maybe an extension of the CodeIgniter ActiveRecord interface:
 This would enable it to plugin to other services - data filters, sorting agents etc. much easier than the programming rigging stuff up each time.
 
 
+Add `Span()` helper
+-------------------
+At present its possible to insert inline HTML by creating a dummy element then passing some HTML to `span()`:
+
+	$this->waveform->Define('alert')
+		->Span('<div class="alert">Hello World</div>');
+
+Since the input element (in the above called 'alert') has no further use its pretty redundent.
+This could be replaced by a shortcut:
+
+	$this->waveform->Span('<div class="alert">Hello World</div>');
+
+
 AJAX validators
 ---------------
 **NO IDEA HOW - NEEDS MORE THOUGHT**
