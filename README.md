@@ -10,6 +10,7 @@ Updates
 1.3.0
 -----
 * Added `$field->Span()` function to display a field *without* displaying the label (effectively making the input use up two 'columns' instead of label/value layout). This works really well with text boxes (via `$row->Text()`) or raw HTML output (via `$row->HTML()`)
+* Added `Value()` function to return the plain text value of a single field (or all fields as an array) instead of using $waveform->Fields flat array access. In the future we could use IO filters which will be required to run when called.
 * BUGFIX: Chrome no longer gets upset when rendering floating point inputs (via `$row->Float()`)
 
 1.2.0

@@ -7,9 +7,9 @@
 * Even thinking of not properly crediting the author will result in the author killing you with hammers.
 *
 * @package Waveform
-* @version 2.1
+* @version 1.3.0
 * @author "Matt Carter" <m@ttcarter.com>
-* @link http://hash-bang.net
+* @link https://github.com/hash-bang/Spark-Waveform
 * @license http://opensource.org/licenses/gpl-license.php GNU Public License
 */
 
@@ -249,6 +249,30 @@ class Waveform {
 	}
 
 	/**
+	* Return the value of a given field - if no specific field is found all Waveform fields are returned as an array
+	* @param string $field The field to return, if no field is specified all are returned as an array
+	* @return mixed|array Either the specific field requested or all as an array
+	*/
+	function Value($field = null) {
+		if ($field) {
+			return isset($this->_fields[$field]) ? $this->_fields[$field]->value : FALSE;
+		} else {
+			$out = array();
+			foreach ($this->_fields[$field] as $field)
+				$out[$field->field] = $field->value;
+			return $out;
+		}
+	}
+
+	/**
+	* Alias of Value()
+	* @see Value()
+	*/
+	function Values($field = null) {
+		return $this->Value($field);
+	}
+
+	/**
 	* Return a field record
 	* @param string $field The field to return
 	* @return WaveFormField The field object found or FALSE if not found
@@ -269,7 +293,9 @@ class Waveform {
 
 	/**
 	* Get a hash of field values (if $fields is omitted all field values are returned)
+	* DEPRECIATED - Use $waveform->Value() instead
 	* @param string|array $fields A field spec according to Filter()
+	* @depreciated 1.3.0
 	*/
 	function GetHash($fields = null) {
 		$out = array();
