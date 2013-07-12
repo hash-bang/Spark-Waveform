@@ -22,10 +22,11 @@ define('WAVEFORM_TYPE_CHOICE', 3); // Restricted choice (i.e. <select> box)
 define('WAVEFORM_TYPE_MULTIPLE_CHOICE', 4); // Restricted choice (i.e. <select> box)
 define('WAVEFORM_TYPE_TEXT', 5); // Large multi-line text entry
 define('WAVEFORM_TYPE_LABEL', 6); // Read-only value (just display it)
-define('WAVEFORM_TYPE_FILE', 7); // File uploads
-define('WAVEFORM_TYPE_PASSWORD', 8); // Password (ask twice)
-define('WAVEFORM_TYPE_EPOC', 9); // Epoc counter type (date stored as an int)
-define('WAVEFORM_TYPE_CHECKBOX', 10); // Yes / no style checkbox
+define('WAVEFORM_TYPE_LINK', 7); // Similar to Read-only but wrap it in <a> tags as a link
+define('WAVEFORM_TYPE_FILE', 8); // File uploads
+define('WAVEFORM_TYPE_PASSWORD', 9); // Password (ask twice)
+define('WAVEFORM_TYPE_EPOC', 10); // Epoc counter type (date stored as an int)
+define('WAVEFORM_TYPE_CHECKBOX', 11); // Yes / no style checkbox
 // Type constants (meta):
 define('WAVEFORM_TYPE_GROUP', 100); // Meta-field to indicate the start of a group
 // }}} Waveform Constants
@@ -721,6 +722,13 @@ class Waveform {
 				$element = 'span';
 				$content = $this->_fields[$field]->value;
 				break;
+			case WAVEFORM_TYPE_LINK:
+				$element = 'a';
+				$params = array_merge(array(
+					'href' => $this->_fields[$field]->value,
+				), $params);
+				$content = $this->_fields[$field]->value;
+				break;
 			case WAVEFORM_TYPE_GROUP:
 				$element = 'div';
 				$content = $this->_fields[$field]->title;
@@ -1395,6 +1403,18 @@ class WaveformField {
 	*/
 	function HTML($html = null) {
 		return $this->Label($html);
+	}
+
+	/**
+	* Shorthand function to define a field as a link
+	* @param string $link The link value to set
+	*/
+	function Link($link = null) {
+		$this->type = WAVEFORM_TYPE_LINK;
+		$this->RemoveValidator('required');
+		if ($link)
+			$this->Default($link);
+		return $this;
 	}
 
 	// FILE type {{{
