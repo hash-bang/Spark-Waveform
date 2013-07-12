@@ -654,7 +654,7 @@ class Waveform {
 					break;
 			}
 		}
-		if (!$computed)
+		if (isset($computed) || !$computed)
 			$computed = mktime($mktime['h'],$mktime['i'],$mktime['s'],$mktime['m'],$mktime['d'],$mktime['Y']);
 		return $computed;
 	}
