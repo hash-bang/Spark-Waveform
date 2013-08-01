@@ -316,7 +316,7 @@ class Waveform {
 	* @param string|array $fields Either a single field or multiple fields to apply the method to
 	* @param bool $silent If boolean TRUE no errors will be reported if the field does not exist. If false trigger_error will be called
 	*/
-	function Apply($methods, $fields, $silent = FALSE) {
+	function Apply($methods, $fields = null, $silent = FALSE) {
 		foreach ((array) $methods as $method) {
 			foreach ($this->Filter($this->_fields, $fields) as $field) {
 				if (isset($this->_fields[$field])) {
