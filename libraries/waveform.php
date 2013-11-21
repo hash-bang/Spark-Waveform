@@ -1183,7 +1183,6 @@ class WaveformField {
 	* @param mixed $value The value to set this field to
 	*/
 	function Set($value) {
-		echo "SET [$this->field] [$value]<br/>";
 		if ($this->type == WAVEFORM_TYPE_MULTIPLE_CHOICE && !is_array($value)) {
 			$this->value = array($value);
 		} else	
