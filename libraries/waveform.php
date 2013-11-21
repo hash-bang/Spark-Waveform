@@ -340,7 +340,7 @@ class Waveform {
 		$this->_fields[$field] = new WaveformField($this, $field);
 		$this->Fields[$field] =& $this->_fields[$field]->value;
 		if (isset($_POST[$field])) { // Import value from _POST if it exists
-			$this->_fields[$field]->value = $_POST[$field];
+			$this->_fields[$field]->Set($_POST[$field]);
 			$this->keys[$field] =& $this->_fields[$field]->value;
 			$this->fresh = FALSE; // This implies the user has tried posting before
 		}
@@ -704,7 +704,7 @@ class Waveform {
 			case WAVEFORM_TYPE_MULTIPLE_CHOICE:
 				$element = 'select';
 				$params = array_merge(array(
-					'name' => $field,
+					'name' => $field . '[]',
 					'multiple' => 'multiple',
 				), $params);
 				$content = '';
@@ -1178,6 +1178,19 @@ class WaveformField {
 	// }}} Validation functionality
 
 	// Convenience functions {{{
+	/**
+	* Set this field to a given value
+	* @param mixed $value The value to set this field to
+	*/
+	function Set($value) {
+		echo "SET [$this->field] [$value]<br/>";
+		if ($this->type == WAVEFORM_TYPE_MULTIPLE_CHOICE && !is_array($value)) {
+			$this->value = array($value);
+		} else	
+			$this->value = $value;
+		return $this;
+	}
+
 	/**
 	* Set the title of the current field
 	* @param string $title The new title to apply
