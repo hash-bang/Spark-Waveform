@@ -758,7 +758,14 @@ class Waveform {
 				), $params);
 				break;
 			case WAVEFORM_TYPE_CHECKBOX:
-				return '';
+				$element = 'input';
+				$params = array_merge(array(
+					'name' => $field,
+					'type' => 'checkbox',
+				), $params);
+				if ($this->_fields[$field]->value)
+					$params['checked'] = 'checked';
+				break;
 			case WAVEFORM_TYPE_STRING:
 			default: // Fall though from _STRING
 				$element = 'input';
@@ -1514,10 +1521,6 @@ class WaveformField {
 	function Checkbox() {
 		$this->type = WAVEFORM_TYPE_CHECKBOX;
 		$this->value = (isset($_POST[$this->field])); // Import correct value from _POST
-		$this->Style('table_label', 'colspan', 2);
-		$this->Style('table_label', 'PREFIX', '<input type="checkbox" id="{$field->field}" name="{$field->field}"' . ($this->value ? ' checked="checked"' : '') . '/><label for="{$field->field}"> ');
-		$this->Style('table_label', 'SUFFIX', '</label>');
-		$this->Style('table_input', 'TAG', '');
 		$this->NotRequired();
 	}
 
