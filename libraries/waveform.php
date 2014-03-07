@@ -46,7 +46,7 @@ class Waveform {
 	var $fresh;
 
 	/**
-	* Simple key => values of the incomming $_POST request
+	* Simple key => values of the incoming $_POST request
 	* This is intended as a simple method to return any Waveform fields that have been passed in post
 	* e.g.
 	* foreach ($Waveform->keys as $key => val)
@@ -216,12 +216,12 @@ class Waveform {
 	/**
 	* Tests the validation of all or a selected number of fields
 	* @param string|array $fields A field spec according to Filter()
-	* @return bool Whether all validations passed
+	* @return null|array Either null if there was a fault or an array of fields (actually a pointer to $this->Fields)
 	*/
 	function OK($fields = null) {
 		$fields = $this->Filter($this->_fields, $fields);
 		if ($this->fresh)
-			return FALSE;
+			return null;
 		$this->_failed = $this->_ok = array();
 		foreach ($fields as $field) {
 			if (! $this->_fields[$field]->Check()) {
@@ -231,11 +231,11 @@ class Waveform {
 			}
 		}
 		if ($this->_failed) {
-			return FALSE;
+			return null;
 		} else { // Everything was ok
 			foreach ($fields as $field)
 				$this->_fields[$field]->Accepted();
-			return TRUE;
+			return $this->Fields;
 		}
 	}
 
@@ -316,7 +316,7 @@ class Waveform {
 	* @param string|array $fields Either a single field or multiple fields to apply the method to
 	* @param bool $silent If boolean TRUE no errors will be reported if the field does not exist. If false trigger_error will be called
 	*/
-	function Apply($methods, $fields, $silent = FALSE) {
+	function Apply($methods, $fields = null, $silent = FALSE) {
 		foreach ((array) $methods as $method) {
 			foreach ($this->Filter($this->_fields, $fields) as $field) {
 				if (isset($this->_fields[$field])) {
@@ -340,7 +340,7 @@ class Waveform {
 		$this->_fields[$field] = new WaveformField($this, $field);
 		$this->Fields[$field] =& $this->_fields[$field]->value;
 		if (isset($_POST[$field])) { // Import value from _POST if it exists
-			$this->_fields[$field]->value = $_POST[$field];
+			$this->_fields[$field]->Set($_POST[$field]);
 			$this->keys[$field] =& $this->_fields[$field]->value;
 			$this->fresh = FALSE; // This implies the user has tried posting before
 		}
@@ -350,7 +350,7 @@ class Waveform {
 
 	// Convenience functions {{{
 	/**
-	* Filter a hash based on an incomming CSV or array
+	* Filter a hash based on an incoming CSV or array
 	* This functionality is used by Form(), Table() or Input() to determine which fields to render
 	*
 	* 1. If $spec is null or empty the entire key set is returned
@@ -542,7 +542,7 @@ class Waveform {
 	}
 
 	/**
-	* Converts an incomming string back into an epoc value
+	* Converts an incoming string back into an epoc value
 	* This function can be thought as the opposit of the PHP Date() function
 	* @param string $format The format as supported by Date()
 	* @param string $string The string to convert back to an Epoc
@@ -704,7 +704,7 @@ class Waveform {
 			case WAVEFORM_TYPE_MULTIPLE_CHOICE:
 				$element = 'select';
 				$params = array_merge(array(
-					'name' => $field,
+					'name' => $field . '[]',
 					'multiple' => 'multiple',
 				), $params);
 				$content = '';
@@ -758,7 +758,14 @@ class Waveform {
 				), $params);
 				break;
 			case WAVEFORM_TYPE_CHECKBOX:
-				return '';
+				$element = 'input';
+				$params = array_merge(array(
+					'name' => $field,
+					'type' => 'checkbox',
+				), $params);
+				if ($this->_fields[$field]->value)
+					$params['checked'] = 'checked';
+				break;
 			case WAVEFORM_TYPE_STRING:
 			default: // Fall though from _STRING
 				$element = 'input';
@@ -1179,6 +1186,18 @@ class WaveformField {
 
 	// Convenience functions {{{
 	/**
+	* Set this field to a given value
+	* @param mixed $value The value to set this field to
+	*/
+	function Set($value) {
+		if ($this->type == WAVEFORM_TYPE_MULTIPLE_CHOICE && !is_array($value)) {
+			$this->value = array($value);
+		} else	
+			$this->value = $value;
+		return $this;
+	}
+
+	/**
 	* Set the title of the current field
 	* @param string $title The new title to apply
 	*/
@@ -1332,7 +1351,7 @@ class WaveformField {
 	* and $key = 'uid', $val = 'name' the following choice array will be used:
 	* array(100 => John, 101 => Luke)
 	*
-	* If $key === boolean false then the incomming array is copied into the keys of the array
+	* If $key === boolean false then the incoming array is copied into the keys of the array
 	* This is particularly usefull if you want the value returned rather than the index offset
 	* e.g. array('one', 'two', 'three') becomes array('one' => 'one', 'two' => 'two', 'three' => 'three')
 	*
@@ -1427,7 +1446,7 @@ class WaveformField {
 	* Accept a file upload and, if successful, store it as the supplied path
 	* * If $path is a directory - The file is saved there and a random file name generated
 	* * If $path is a file path + name - The file is saved as that path + name
-	* * If $path is omitted - Nothing is done with the incomming file and its name remains as PHP's temporary path storage name
+	* * If $path is omitted - Nothing is done with the incoming file and its name remains as PHP's temporary path storage name
 	* The actual name of the file can be accessed using the usual $_POST['file'] variable
 	* @param string $path Optional name of a file or directory to save the file in
 	*/
@@ -1475,11 +1494,13 @@ class WaveformField {
 	*/
 	function Password($twice = TRUE) {
 		$this->type = WAVEFORM_TYPE_PASSWORD;
-		$this->parent->Define($cloned = $this->field . '_again')
-			->Title($this->title . ' again')
-			->Type('password')
-			->_style = $this->_style;
-		$this->SameAs($cloned, 'Passwords must match');
+		if ($twice) {
+			$this->parent->Define($cloned = $this->field . '_again')
+				->Title($this->title . ' again')
+				->Type('password')
+				->_style = $this->_style;
+			$this->SameAs($cloned, 'Passwords must match');
+		}
 		return $this;
 	}
 
@@ -1512,10 +1533,6 @@ class WaveformField {
 	function Checkbox() {
 		$this->type = WAVEFORM_TYPE_CHECKBOX;
 		$this->value = (isset($_POST[$this->field])); // Import correct value from _POST
-		$this->Style('table_label', 'colspan', 2);
-		$this->Style('table_label', 'PREFIX', '<input type="checkbox" id="{$field->field}" name="{$field->field}"' . ($this->value ? ' checked="checked"' : '') . '/><label for="{$field->field}"> ');
-		$this->Style('table_label', 'SUFFIX', '</label>');
-		$this->Style('table_input', 'TAG', '');
 		$this->NotRequired();
 	}
 
